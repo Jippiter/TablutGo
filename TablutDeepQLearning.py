@@ -178,10 +178,11 @@ for e in range(starting_game_number,number_of_games):
 
                 print("Weights saved.")
     except KeyboardInterrupt:
-        print()
-        print("Execution manually interrupted. Saving.")
-
-        agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
-        agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
-
-        print("Weights saved.")
+        if replay_mode:
+            print()
+            print("Execution manually interrupted. Saving.")
+    
+            agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
+            agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
+    
+            print("Weights saved.")
