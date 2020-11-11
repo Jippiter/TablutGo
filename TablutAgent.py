@@ -35,6 +35,17 @@ class DQNAgent():
         self.model = self._build_model()
         self.model_target=self._build_model()
         
+    def __getstate__ (self):
+        state = self.__dict__.copy()
+        del state['model']
+        del state['model_target']
+        return state
+        
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.model = self._build_model()
+        self.model_target=self._build_model()
+        
     def _build_model(self):
         
         input_shape=(9,9,2) if self.split_channels else (9,9,1)
@@ -127,6 +138,7 @@ class DQNAgent():
         Load weights
         '''
         self.model.load_weights(name)
+        self.model_target.load_weights(name)
         
     def save(self, name):
         '''

@@ -2,6 +2,7 @@
 
 import os
 import glob
+import pickle
 import TablutEnvironment
 import TablutAgent
 
@@ -23,6 +24,43 @@ def saveParameters(path,gamma, epsilon_min, epsilon_decay, learning_rate, batch_
     file.write("reward black capture = " + str(reward_black_capture))
 
     file.close()
+    
+def saveWeights(agent_white, agent_black, output_dir, epoch):
+    agent_white.save(output_dir + "weights_white" + "{:04d}".format(epoch) + ".hdf5")
+    agent_black.save(output_dir + "weights_black" + "{:04d}".format(epoch) + ".hdf5")
+    
+    print("Weights saved.")
+    
+def saveAgents(agent_white, agent_black, output_dir, epoch):
+    with open(output_dir + "agent_white" + "{:04d}".format(epoch) + ".pkl", 'wb') as output:
+        pickle.dump(agent_white, output, pickle.HIGHEST_PROTOCOL)
+
+    with open(output_dir + "agent_black" + "{:04d}".format(epoch) + ".pkl", 'wb') as output:
+        pickle.dump(agent_black, output, pickle.HIGHEST_PROTOCOL)
+        
+    print("Agents saved")
+        
+def loadAgents(agent_white, agent_black,path):
+    white = glob.glob(path + "agent_white*.pkl")
+    black = glob.glob(path + "agent_black*.pkl")
+    
+    a_white=agent_white
+    a_black=agent_black
+    
+    already_trained = False
+    
+    if len(white)>0 and len(black)>0:
+        already_trained = True
+        
+        with open(white[-1], 'rb') as data_white:
+            a_white = pickle.load(data_white)
+            
+        with open(black[-1], 'rb') as data_black:
+            a_black = pickle.load(data_black)
+            
+        print("Agents loaded")
+            
+    return a_white, a_black, already_trained
 
 #Parameters
 
@@ -48,9 +86,9 @@ reward_black_capture=-5 #reward for capturing a white piece
 show_board = True #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Second Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+cnn_weights_path = "Third Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
-save_weights_step = 25 #Save the CNNs' weights after each multiple of this number
+save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
 
 board_path = "Resources/Board.png"
 
@@ -88,9 +126,12 @@ env = TablutEnvironment.Environment(reward_king_captured=reward_king_captured,
                                     draw_board=show_board)
 
 output_dir = "Weights/" + cnn_weights_path
+starting_game_number=0
+replay_mode = False
+
+random_games = 0
 
 if not os.path.exists(output_dir):
-    starting_game_number=0
     os.makedirs(output_dir)
     saveParameters(path=output_dir,
                    gamma=gamma,
@@ -105,7 +146,10 @@ if not os.path.exists(output_dir):
                    reward_white_capture=reward_white_capture,
                    reward_black_capture=reward_black_capture)
     
-else: #load weights
+else: #load weights and agents
+    
+    agent_white, agent_black, replay_mode = loadAgents(agent_white, agent_black, output_dir)
+    
     weights_white = glob.glob(output_dir + "*white*.hdf5")
     weights_black = glob.glob(output_dir + "*black*.hdf5")
     if len(weights_white)>0 and len(weights_black)>0: #if they exist, load last (best) weights
@@ -114,9 +158,6 @@ else: #load weights
         number = weights_white[-1][-9:]
         starting_game_number = int(number[0:4]) #restart from the last played game count
         print("Weights loaded")
-        
-replay_mode = False
-random_games=0
 
 #Start
 
@@ -125,6 +166,10 @@ print("Playing random games to gain experience...")
 try:
     for e in range(starting_game_number,number_of_games):
         state, legal_moves = env.reset()
+        
+        if (e-random_games+1) % save_weights_step == 0 and replay_mode:
+            saveWeights(agent_white,agent_black,output_dir,e-random_games+1)
+            saveAgents(agent_white, agent_black, output_dir, e-random_games+1)
 
         moves=0
         while True:
@@ -172,18 +217,10 @@ try:
                 print (headline,"n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
                 break
 
-            if (e-random_games+1) % save_weights_step == 0 and replay_mode:
-                agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
-                agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
-
-                print("Weights saved.")
-
 except KeyboardInterrupt:
     if replay_mode:
         print()
         print("Execution manually interrupted. Saving.")
     
-        agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
-        agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
-    
-        print("Weights saved.")
+        saveWeights(agent_white,agent_black,output_dir,e-random_games+1)
+        saveAgents(agent_white, agent_black, output_dir, e-random_games+1)
