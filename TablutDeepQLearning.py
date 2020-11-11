@@ -122,8 +122,8 @@ random_games=0
 
 print("Playing random games to gain experience...")
 #Deep Q-Learning algorithm applied with two agents (black and white) playing one against the other
-for e in range(starting_game_number,number_of_games):
-    try:
+try:
+    for e in range(starting_game_number,number_of_games):
         state, legal_moves = env.reset()
 
         moves=0
@@ -177,12 +177,13 @@ for e in range(starting_game_number,number_of_games):
                 agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
 
                 print("Weights saved.")
-    except KeyboardInterrupt:
-        if replay_mode:
-            print()
-            print("Execution manually interrupted. Saving.")
+
+except KeyboardInterrupt:
+    if replay_mode:
+        print()
+        print("Execution manually interrupted. Saving.")
     
-            agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
-            agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
+        agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
+        agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
     
-            print("Weights saved.")
+        print("Weights saved.")
