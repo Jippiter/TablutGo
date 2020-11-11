@@ -123,57 +123,65 @@ random_games=0
 print("Playing random games to gain experience...")
 #Deep Q-Learning algorithm applied with two agents (black and white) playing one against the other
 for e in range(starting_game_number,number_of_games):
-    
-    state, legal_moves = env.reset()
-    
-    moves=0
-    while True:
-        moves+=1
-        
-        action = agent_white.act(state, legal_moves)
-        
-        next_state, reward, done, draw, legal_moves = env.step(action)
-        
-        agent_white.remember(state, action, reward, next_state, done, legal_moves)
-        
-        state = next_state
-            
-        if len(agent_white.memory) > moves_before_replay:
-            if not replay_mode:
-                replay_mode = True
-                random_games=e
-                print("Replay mode started...")
-            agent_white.replay(batch_size)
-            
-        if done:
-            result = "White won" if not draw else "Draw"
-            headline = "Random game" if not replay_mode else "Game"
-            print (headline, "n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
-            break
-        
-        action = agent_black.act(state, legal_moves)
-        
-        next_state, reward, done, draw, legal_moves = env.step(action)
-        
-        agent_black.remember(state, action, reward, next_state, done, legal_moves)
-        
-        state = next_state
-            
-        if len(agent_black.memory) > moves_before_replay:
-            if not replay_mode:
-                replay_mode = True
-                random_games=e
-                print("Replay mode started...")
-            agent_black.replay(batch_size)
-            
-        if done:
-            result = "Black won" if not draw else "Draw"
-            headline = "Random game" if not replay_mode else "Game"
-            print (headline,"n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
-            break
-            
-    if (e-random_games+1) % save_weights_step == 0 and replay_mode:
+    try:
+        state, legal_moves = env.reset()
+
+        moves=0
+        while True:
+            moves+=1
+
+            action = agent_white.act(state, legal_moves)
+
+            next_state, reward, done, draw, legal_moves = env.step(action)
+
+            agent_white.remember(state, action, reward, next_state, done, legal_moves)
+
+            state = next_state
+
+            if len(agent_white.memory) > moves_before_replay:
+                if not replay_mode:
+                    replay_mode = True
+                    random_games=e
+                    print("Replay mode started...")
+                agent_white.replay(batch_size)
+
+            if done:
+                result = "White won" if not draw else "Draw"
+                headline = "Random game" if not replay_mode else "Game"
+                print (headline, "n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
+                break
+
+            action = agent_black.act(state, legal_moves)
+
+            next_state, reward, done, draw, legal_moves = env.step(action)
+
+            agent_black.remember(state, action, reward, next_state, done, legal_moves)
+
+            state = next_state
+
+            if len(agent_black.memory) > moves_before_replay:
+                if not replay_mode:
+                    replay_mode = True
+                    random_games=e
+                    print("Replay mode started...")
+                agent_black.replay(batch_size)
+
+            if done:
+                result = "Black won" if not draw else "Draw"
+                headline = "Random game" if not replay_mode else "Game"
+                print (headline,"n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
+                break
+
+            if (e-random_games+1) % save_weights_step == 0 and replay_mode:
+                agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
+                agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
+
+                print("Weights saved.")
+    except KeyboardInterrupt:
+        print()
+        print("Execution manually interrupted. Saving.")
+
         agent_white.save(output_dir + "weights_white" + "{:04d}".format(e-random_games) + ".hdf5")
         agent_black.save(output_dir + "weights_black" + "{:04d}".format(e-random_games) + ".hdf5")
-        
-        print("Weights saved")
+
+        print("Weights saved.")
