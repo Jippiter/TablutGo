@@ -1,0 +1,26 @@
+Example of code of DQN applied to Atari games
+https://keras.io/examples/rl/deep_q_network_breakout/
+
+Paper on DQN applied to Atari games
+https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf
+
+Explanation of strides in CNNs
+https://deepai.org/machine-learning-glossary-and-terms/stride
+
+Basic concepts on CNNs
+https://en.wikipedia.org/wiki/Types_of_artificial_neural_networks#Convolutional
+
+Paper on AlphaZero
+https://discovery.ucl.ac.uk/id/eprint/10069050/1/alphazero_preprint.pdf
+
+Paper on CNNs applied to chess
+http://cs231n.stanford.edu/reports/2015/pdfs/ConvChess.pdf
+
+Nice introduction on CNNs
+https://towardsdatascience.com/convolutional-neural-networks-for-beginners-practical-guide-with-python-and-keras-dc688ea90dca
+
+Simple and very useful tutorial on how to implement a DQN agent
+https://www.youtube.com/watch?v=OYhFoMySoVs
+
+Some ideas about the implementation of DQN for two players games
+https://ai.stackexchange.com/questions/5890/what-are-good-learning-strategies-for-deep-q-network-with-opponents
