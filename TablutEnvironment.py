@@ -411,12 +411,12 @@ class Environment:
                     
                     else:
                         if self.isThrone(enemy):
-                            if state[enemy[0]+1, enemy[1]+1] + state[enemy[0]+1, enemy[1]-1] + state[enemy[0]-1, enemy[1]+1] + state[enemy[0]-1, enemy[1]-1] == -4:
+                            if state[enemy[0]+1, enemy[1]] + state[enemy[0]-1, enemy[1]] + state[enemy[0], enemy[1]+1] + state[enemy[0], enemy[1]-1] == -4:
                                 next_state[enemy[0],enemy[1]]=0
                                 number_of_captures+=1
                             
                         elif self.isNearThrone(enemy):
-                            if state[enemy[0]+1, enemy[1]+1] + state[enemy[0]+1, enemy[1]-1] + state[enemy[0]-1, enemy[1]+1] + state[enemy[0]-1, enemy[1]-1] == -3:
+                            if state[enemy[0]+1, enemy[1]] + state[enemy[0]-1, enemy[1]] + state[enemy[0], enemy[1]+1] + state[enemy[0], enemy[1]-1] == -3:
                                 next_state[enemy[0],enemy[1]]=0
                                 number_of_captures+=1
                                 
