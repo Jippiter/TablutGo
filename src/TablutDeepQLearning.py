@@ -83,10 +83,10 @@ reward_king_escape=100 #reward for reaching a winning square with the king
 reward_white_capture=3 #reward for capturing a black piece
 reward_black_capture=-5 #reward for capturing a white piece
 
-show_board = True #set True to watch the games on a board (this operation does not affect performances)
+show_board = False #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Third Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+cnn_weights_path = "Valerio Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
 save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
 

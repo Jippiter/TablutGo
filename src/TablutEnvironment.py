@@ -67,7 +67,9 @@ class Environment:
             self.window.title("Board")
             self.canvas = Canvas(self.window,width=450,height=450)
             self.canvas.pack()
-        
+    
+
+    
     def actionToCoordinates(self,action):
         '''
         Decode action number into coordinates (from, to)
@@ -178,7 +180,34 @@ class Environment:
             self.showState(self.current_state)
     
         return self.current_state, self.legal_moves
+    
+    def set_state(self, next_state, turn):
+        done=False
+        draw=False
         
+        if self.isKingCaptured(next_state):
+            done=True        
+        elif self.isKingOnSafeSquare(next_state):
+            done=True
+        elif self.checkNoLegalMovesRemained(next_state) and self.turn==self.WHITE:
+            done=True         
+        elif self.checkNoLegalMovesRemained(next_state) and self.turn==self.BLACK:
+            done=True
+        elif self.stateReached(next_state, -self.turn):
+            done=True
+            draw=True
+        else:
+            if turn == "BLACK":
+            	self.turn==self.BLACK
+            elif turn == "WHITE":
+                self.turn==self.WHITE
+            self.legal_moves=self.getAllLegalMoves(next_state, self.turn)
+
+        self.current_state=next_state
+        self.reached_states.append((self.current_state, self.turn))
+
+        return next_state, 0, done, draw, self.legal_moves
+
     def step(self, action):
         '''
         Execute a move.
@@ -411,12 +440,12 @@ class Environment:
                     
                     else:
                         if self.isThrone(enemy):
-                            if state[enemy[0]+1, enemy[1]] + state[enemy[0]-1, enemy[1]] + state[enemy[0], enemy[1]+1] + state[enemy[0], enemy[1]-1] == -4:
+                            if state[enemy[0]+1, enemy[1]+1] + state[enemy[0]+1, enemy[1]-1] + state[enemy[0]-1, enemy[1]+1] + state[enemy[0]-1, enemy[1]-1] == -4:
                                 next_state[enemy[0],enemy[1]]=0
                                 number_of_captures+=1
                             
                         elif self.isNearThrone(enemy):
-                            if state[enemy[0]+1, enemy[1]] + state[enemy[0]-1, enemy[1]] + state[enemy[0], enemy[1]+1] + state[enemy[0], enemy[1]-1] == -3:
+                            if state[enemy[0]+1, enemy[1]+1] + state[enemy[0]+1, enemy[1]-1] + state[enemy[0]-1, enemy[1]+1] + state[enemy[0]-1, enemy[1]-1] == -3:
                                 next_state[enemy[0],enemy[1]]=0
                                 number_of_captures+=1
                                 

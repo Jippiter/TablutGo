@@ -103,6 +103,18 @@ class DQNAgent():
         
         return int(np.random.choice(best_actions[0]))
     
+    def act_perfect(self, state, legal_moves):
+        '''
+        Choose a legal move by model prediction.
+        '''
+        act_values = self.model.predict(self.reshapeInput(state))
+        act_values_masked = act_values[0][legal_moves]
+        
+        best_reward = np.amax (act_values_masked) if self.colour=="W" else np.amin(act_values_masked)
+        best_actions = np.where (act_values[0]==best_reward)
+        
+        return int(np.random.choice(best_actions[0]))
+    
     def replay(self, batch_size):
         '''
         Train the model with past experience rewards
