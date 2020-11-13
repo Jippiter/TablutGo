@@ -161,7 +161,8 @@ else: #load weights and agents
 
 #Start
 
-print("Playing random games to gain experience...")
+if not replay_mode:
+    print("Playing random games to gain experience...")
 #Deep Q-Learning algorithm applied with two agents (black and white) playing one against the other
 try:
     for e in range(starting_game_number,number_of_games):

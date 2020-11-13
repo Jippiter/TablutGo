@@ -1,0 +1,13 @@
+gamma = 0.95
+epsilon-min = 0.05
+epsilon decay = 0.9995
+learning rate = 0.0005
+
+batch size = 32
+split input channels = True
+update model target steps = 500
+
+reward king captured = -100
+reward king escape = 100
+reward white capture = 3
+reward black capture = -5
