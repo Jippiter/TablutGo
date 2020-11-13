@@ -70,7 +70,7 @@ class Environment:
     
 
     
-    def actionToCoordinates(self,action):
+    def actionToCoordinates(self,action, server=False):
         '''
         Decode action number into coordinates (from, to)
         '''
@@ -86,6 +86,10 @@ class Environment:
         else: #move on same row
             to_row = from_row
             to_column = (from_column + 1 + to_square % 8) % 9
+            
+        if server:
+            from_row = 8-from_row
+            to_row = 8-to_row
             
         from_coordinates=self.reversed_columns_dictionary[from_column] + self.reversed_rows_dictionary[from_row]
         to_coordinates=self.reversed_columns_dictionary[to_column] + self.reversed_rows_dictionary[to_row]

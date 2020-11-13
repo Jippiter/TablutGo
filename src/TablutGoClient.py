@@ -124,7 +124,7 @@ while True:
 			if data['turn'] == player_color:
 				print("Computing and sending action.")
 				action=agent.act_perfect(state, legal_moves)
-				fro, to=env.actionToCoordinates(action)
+				fro, to=env.actionToCoordinates(action, serve=True)
 				send_move(connHandle, fro, to, player_color)
 				print("Action sent!")
 			else:
