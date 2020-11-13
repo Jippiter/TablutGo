@@ -124,19 +124,19 @@ while True:
 			if data['turn'] == player_color:
 				print("Computing and sending action.")
 				action=agent.act_perfect(state, legal_moves)
-				fro, to=env.actionToCoordinates(action, serve=True)
+				fro, to=env.actionToCoordinates(action, server=True)
 				send_move(connHandle, fro, to, player_color)
 				print("Action sent!")
 			else:
 				print("Waiting...")
 	except ConnectionException as e:
 		print(e)
-		if draw:
-			result="drew."
-		elif end_turn == player_color:
-			result="won!"
+		if end_turn == "DRAW":
+			result= "drew."
+		elif end_turn == player_color + "WIN":
+			result= "won!"
 		else:
-			result ="lost. :("
+			result = "lost. :("
 		print("We {} GG WP!".format(result))
 		break
 
