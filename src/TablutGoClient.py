@@ -13,9 +13,8 @@ import glob
 
 agent_path = "Valerio Test/"
 
-def CommandLineException(Exception):
+class CommandLineException(Exception):
 	pass
-
 
 def send_move(connHandle, fro, to, player_color):
 	move = {
@@ -137,7 +136,7 @@ while True:
 		elif end_turn == player_color:
 			result="won!"
 		else:
-			result == "lost. :("
+			result ="lost. :("
 		print("We {} GG WP!".format(result))
 		break
 

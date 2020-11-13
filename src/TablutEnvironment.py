@@ -181,32 +181,30 @@ class Environment:
     
         return self.current_state, self.legal_moves
     
-    def set_state(self, next_state, turn):
+    def set_state(self, state, turn):
         done=False
         draw=False
-        
-        if self.isKingCaptured(next_state):
+          
+        if turn == "BLACK":
+            self.turn=self.BLACK
+        elif turn == "WHITE":
+            self.turn=self.WHITE  
+        self.current_state=state
+
+        self.reached_states.append((self.current_state, self.turn))
+        self.legal_moves=self.getAllLegalMoves(self.current_state, self.turn)     
+
+        if self.isKingCaptured(state):
             done=True        
-        elif self.isKingOnSafeSquare(next_state):
+        elif self.isKingOnSafeSquare(state):
             done=True
-        elif self.checkNoLegalMovesRemained(next_state) and self.turn==self.WHITE:
-            done=True         
-        elif self.checkNoLegalMovesRemained(next_state) and self.turn==self.BLACK:
+        elif self.checkNoLegalMovesRemained(state):
             done=True
-        elif self.stateReached(next_state, -self.turn):
+        elif self.stateReached(state, -self.turn):
             done=True
             draw=True
-        else:
-            if turn == "BLACK":
-            	self.turn==self.BLACK
-            elif turn == "WHITE":
-                self.turn==self.WHITE
-            self.legal_moves=self.getAllLegalMoves(next_state, self.turn)
 
-        self.current_state=next_state
-        self.reached_states.append((self.current_state, self.turn))
-
-        return next_state, 0, done, draw, self.legal_moves
+        return state, 0, done, draw, self.legal_moves
 
     def step(self, action):
         '''
