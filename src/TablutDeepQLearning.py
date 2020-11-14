@@ -5,6 +5,8 @@ import glob
 import pickle
 import TablutEnvironment
 import TablutAgent
+import matplotlib
+import matplotlib.pyplot as plt
 
 def saveParameters(path,gamma, epsilon_min, epsilon_decay, learning_rate, batch_size, split_input_channels, update_model_target, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture):
     '''
@@ -24,7 +26,12 @@ def saveParameters(path,gamma, epsilon_min, epsilon_decay, learning_rate, batch_
     file.write("reward black capture = " + str(reward_black_capture))
 
     file.close()
-    
+
+def showQAvgPlot(agent_white, agent_black):
+    plt.plot(agent_white.games_q_avg, color='gray', marker='.')
+    plt.plot(agent_black.games_q_avg, color='black', marker='.')
+    plt.show()
+
 def saveWeights(agent_white, agent_black, output_dir, epoch):
     agent_white.save(output_dir + "weights_white" + "{:04d}".format(epoch) + ".hdf5")
     agent_black.save(output_dir + "weights_black" + "{:04d}".format(epoch) + ".hdf5")
@@ -80,13 +87,14 @@ update_model_target= 500 #number of moves required to update weights on the mode
 #These rewards refer to white's perspective
 reward_king_captured=-100 #reward for capturing the king
 reward_king_escape=100 #reward for reaching a winning square with the king
-reward_white_capture=3 #reward for capturing a black piece
+reward_white_capture=5 #reward for capturing a black piece
 reward_black_capture=-5 #reward for capturing a white piece
 
 show_board = False #set True to watch the games on a board (this operation does not affect performances)
+show_learning_graph = True
 
 #REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Valerio Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+cnn_weights_path = "Fourth Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
 save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
 
@@ -179,7 +187,8 @@ try:
             action = agent_white.act(state, legal_moves)
 
             next_state, reward, done, draw, legal_moves = env.step(action)
-
+            if replay_mode:
+                agent_white.add_q_avg(reward)
             agent_white.remember(state, action, reward, next_state, done, legal_moves)
 
             state = next_state
@@ -192,13 +201,17 @@ try:
                 agent_white.replay(batch_size)
 
             if done:
+                if replay_mode:
+                    agent_white.store_q_avg(moves)
+                    agent_black.store_q_avg(moves)
                 result = "White won" if not draw else "Draw"
                 headline = "Random game" if not replay_mode else "Game"
                 print (headline, "n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
                 break
 
             action = agent_black.act(state, legal_moves)
-
+            if replay_mode:
+                agent_black.add_q_avg(reward)
             next_state, reward, done, draw, legal_moves = env.step(action)
 
             agent_black.remember(state, action, reward, next_state, done, legal_moves)
@@ -213,6 +226,9 @@ try:
                 agent_black.replay(batch_size)
 
             if done:
+                if replay_mode:
+                    agent_white.store_q_avg(moves)
+                    agent_black.store_q_avg(moves)
                 result = "Black won" if not draw else "Draw"
                 headline = "Random game" if not replay_mode else "Game"
                 print (headline,"n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
@@ -225,3 +241,6 @@ except KeyboardInterrupt:
     
         saveWeights(agent_white,agent_black,output_dir,e-random_games+1)
         saveAgents(agent_white, agent_black, output_dir, e-random_games+1)
+
+if show_learning_graph:
+    showQAvgPlot(agent_white, agent_black)

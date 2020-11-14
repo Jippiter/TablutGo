@@ -24,6 +24,7 @@ class DQNAgent():
         self.epsilon_min = epsilon_min
         
         self.learning_rate = learning_rate
+        self.games_q_avg = [0]
         
         self.split_channels=split_channels
         
@@ -45,7 +46,7 @@ class DQNAgent():
         self.__dict__ = d
         self.model = self._build_model()
         self.model_target=self._build_model()
-        
+    
     def _build_model(self):
         
         input_shape=(9,9,2) if self.split_channels else (9,9,1)
@@ -82,39 +83,34 @@ class DQNAgent():
         
         else:    
             return np.expand_dims(np.reshape(state, (9, 9, 1)), axis = 0)
-    
+
+    def add_q_avg(self, reward):        
+        self.games_q_avg[-1] += reward
+
+    def store_q_avg(self, n_moves):
+        self.games_q_avg[-1] /= n_moves
+        self.games_q_avg.append(0)
+
     def remember(self, state, action, reward, next_state, done, legal_moves):
         '''
         Save information about an executed move for replay
         '''
         self.memory.append((state, action, reward, next_state, done, legal_moves))
         
-    def act(self, state, legal_moves):
+    def act(self, state, legal_moves, perfect=False):
         '''
         Choose a legal move by model prediction with 1-epsilon probability or randomly otherwise.
         '''
-        if np.random.rand() <= self.epsilon:
+        if ~perfect and np.random.rand() <= self.epsilon:
             return random.choice(legal_moves)
         act_values = self.model.predict(self.reshapeInput(state))
         act_values_masked = act_values[0][legal_moves]
         
         best_reward = np.amax (act_values_masked) if self.colour=="W" else np.amin(act_values_masked)
         best_actions = np.where (act_values[0]==best_reward)
-        
+
         return int(np.random.choice(best_actions[0]))
-    
-    def act_perfect(self, state, legal_moves):
-        '''
-        Choose a legal move by model prediction.
-        '''
-        act_values = self.model.predict(self.reshapeInput(state))
-        act_values_masked = act_values[0][legal_moves]
-        
-        best_reward = np.amax (act_values_masked) if self.colour=="W" else np.amin(act_values_masked)
-        best_actions = np.where (act_values[0]==best_reward)
-        
-        return int(np.random.choice(best_actions[0]))
-    
+
     def replay(self, batch_size):
         '''
         Train the model with past experience rewards

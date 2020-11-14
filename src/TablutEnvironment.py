@@ -434,30 +434,27 @@ class Environment:
             enemy = enemies[i]
             opposite = opposites[i]
             
-            if self.areEnemies(piece, state[enemy[0],enemy[1]]) and not self.isCampSquare(enemy):
-                if self.areAllies(piece, state[opposite[0],opposite[1]]) or self.isCampSquare(opposite) or self.isThrone(opposite):
-                    if state[enemy[0],enemy[1]] != 3:
-                        next_state[enemy[0],enemy[1]]=0
-                        number_of_captures+=1
-
-
-                else:
-
-                    if self.isThrone(enemy):
-                        if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -4:
-                            next_state[enemy[0], enemy[1]] = 0
-                            number_of_captures += 1
-
-
-                    elif self.isNearThrone(enemy):
-                        if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -3:
-                            next_state[enemy[0], enemy[1]] = 0
-                            number_of_captures += 1
-                                
-                        else:
+            try:
+                if self.areEnemies(piece, state[enemy[0],enemy[1]]) and not self.isCampSquare(enemy):
+                    if self.areAllies(piece, state[opposite[0],opposite[1]]) or self.isCampSquare(opposite) or self.isThrone(opposite):
+                        if state[enemy[0],enemy[1]] != 3:
                             next_state[enemy[0],enemy[1]]=0
                             number_of_captures+=1
-        
+                    else:
+                        if self.isThrone(enemy):
+                            if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -4:
+                                next_state[enemy[0], enemy[1]] = 0
+                                number_of_captures += 1
+                        elif self.isNearThrone(enemy):
+                            if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -3:
+                                next_state[enemy[0], enemy[1]] = 0
+                                number_of_captures += 1
+                            else:
+                                next_state[enemy[0],enemy[1]]=0
+                                number_of_captures+=1
+            except IndexError:
+                pass
+
         return next_state, number_of_captures
         
     def checkEndOfCheckers(self, state):
