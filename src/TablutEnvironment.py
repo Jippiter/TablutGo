@@ -374,13 +374,13 @@ class Environment:
         '''
         Return True if the given pieces are enemies
         '''
-        return piece_1 * piece_2 < 0
+        return (piece_1 * piece_2) < 0
     
     def areAllies(self, piece_1, piece_2):
         '''
         Return True if the given pieces are allies
         '''
-        return piece_1 * piece_2 >0
+        return (piece_1 * piece_2) >0
     
     def isCampSquare(self, square):
         '''
@@ -471,18 +471,18 @@ class Environment:
                         if state[enemy[0],enemy[1]] != 3:
                             next_state[enemy[0],enemy[1]]=0
                             number_of_captures+=1
-                    else:
-                        if self.isThrone(enemy):
-                            if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -4:
-                                next_state[enemy[0], enemy[1]] = 0
-                                number_of_captures += 1
-                        elif self.isNearThrone(enemy):
-                            if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -3:
-                                next_state[enemy[0], enemy[1]] = 0
-                                number_of_captures += 1
-                            else:
-                                next_state[enemy[0],enemy[1]]=0
-                                number_of_captures+=1
+                        else:
+                            if self.isThrone(enemy):
+                                if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -4:
+                                    next_state[enemy[0], enemy[1]] = 0
+                                    number_of_captures += 1
+                            elif self.isNearThrone(enemy):
+                                if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -3:
+                                    next_state[enemy[0], enemy[1]] = 0
+                                    number_of_captures += 1
+                                else:
+                                    next_state[enemy[0],enemy[1]]=0
+                                    number_of_captures+=1
             except IndexError:
                 pass
 
