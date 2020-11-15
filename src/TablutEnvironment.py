@@ -7,17 +7,21 @@ import time
 
 class Environment:
     
-    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, board_path, draw_board):
+    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, reward_king_closer_edge, reward_king_further_black, reward_king_freedom, board_path, draw_board):
         self.current_state=None
         self.turn=None
         self.reached_states = None
         self.white_reward = None
         self.legal_moves=None
+        self.distance_matrix = None
         
         self.reward_king_captured=reward_king_captured
         self.reward_king_escape=reward_king_escape
         self.reward_white_capture=reward_white_capture
         self.reward_black_capture=reward_black_capture
+        self.reward_king_closer_edge = reward_king_closer_edge
+        self.reward_king_further_black = reward_king_further_black
+        self.reward_king_freedom = reward_king_freedom
         self.board_path=board_path
         self.draw_board=draw_board
         
@@ -179,6 +183,7 @@ class Environment:
                                     [0,0,0,-1,-1,-1,0,0,0]])
         
         self.legal_moves=self.getAllLegalMoves(self.current_state,self.turn)
+        self.distance_matrix = self.distance(self.current_state, self.getKingPosition(self.current_state))
         
         if self.draw_board:
             self.showState(self.current_state)
@@ -220,6 +225,8 @@ class Environment:
         
         from_coordinates, to_coordinates = self.actionToCoordinates(action)
         
+        king_moved = self.getKingPosition(self.current_state)==from_coordinates
+        
         from_column = self.columns_dictionary[from_coordinates[0]]
         from_row = self.rows_dictionary[from_coordinates[1]]
         
@@ -231,6 +238,7 @@ class Environment:
         next_state[from_row,from_column]=0
         
         next_state, number_of_captures=self.applyCaptures(next_state, (to_row, to_column))
+        next_distance_matrix = self.distance(next_state, self.getKingPosition(next_state))
         
         if self.turn==self.WHITE:  
             self.legal_moves=self.getAllLegalMoves(next_state, self.BLACK)
@@ -271,8 +279,30 @@ class Environment:
                 self.white_reward+=self.reward_black_capture*number_of_captures
                 self.turn=self.WHITE
                 
+            distance_before = self.distanceToTheEdges(self.distance_matrix)
+            distance_after = self.distanceToTheEdges(next_distance_matrix)
+            
+            if distance_after==np.inf:
+                if distance_before!=np.inf:
+                    self.white_reward+=-self.reward_king_closer_edge * 3
+            
+            else:
+                #if king_moved and distance_before==distance_after:
+                    #self.white_reward+=-self.reward_king_closer_edge//2
+                #else:
+                self.white_reward+=self.reward_king_closer_edge * (distance_before-distance_after)
+            
+            average_distance_before = self.averageDistanceToTheKing(self.current_state)
+            average_distance_after = self.averageDistanceToTheKing(next_state)
+            self.white_reward+=self.reward_king_further_black * (average_distance_after-average_distance_before)
+            
+            pieces_around_before = self.blackPiecesAroundKing(self.current_state)
+            pieces_around_after = self.blackPiecesAroundKing(next_state)
+            self.white_reward+=self.reward_king_freedom * (pieces_around_before-pieces_around_after)
+                
         self.current_state=next_state
         self.reached_states.append((self.current_state,self.turn))
+        self.distance_matrix = next_distance_matrix
         
         if self.draw_board:
             self.showState(self.current_state)
@@ -374,9 +404,10 @@ class Environment:
         row_throne = 4
         column_throne = 4
         
-        distance = row-row_throne + column-column_throne
+        distance_row = abs(row-row_throne)
+        distance_col = abs(column-column_throne)
         
-        return abs(distance)==1
+        return (distance_row==1 and distance_col==0) or(distance_row==0 and distance_col==1)
     
     def getAllLegalMoves(self, state, turn):
         '''
@@ -484,3 +515,148 @@ class Environment:
         Check if a player has no possible legal moves
         '''
         return len(self.legal_moves)==0
+    
+    def getKingPosition(self, state):
+        king_position = np.where(state==3)
+        if len(king_position[0]!=0):
+            king_row = king_position[0][0]
+            king_col = king_position[1][0]
+        
+            return (king_row, king_col)
+        else:
+            return None
+
+    def distance(self, state, square):
+        '''
+        Slightly altered version of Dijkstra's algorithm to create a distance matrix from a given square.
+        This takes in account the legal moves and the possibility of moving for multiple squares toward a direction.
+        Return the distance matrix
+        '''
+        
+        if square==None:
+            return np.zeros((9,9))
+        
+        #Directions
+        UP = 1
+        RIGHT = 2
+        DOWN = 3
+        LEFT = 4
+        START = 0
+        
+        distance_matrix = np.full((9, 9), np.inf)
+        
+        distance_matrix[square] = 0
+        
+        open_nodes = {}
+        open_values = {}
+        
+        #Node structure: square, direction
+        open_nodes[square] = [START]
+        open_values[square] = 0
+        
+        while len(open_nodes)!=0:
+            picked_node = min(open_values, key=open_values.get)
+            
+            row, col=picked_node
+            adjacent_nodes = []
+            
+            if row!=8:
+                down = (row+1, col)
+                if state[down]==0 and self.board[down]==0:
+                    adjacent_nodes.append((down,[DOWN]))
+                    
+            if row!=0:
+                up = (row-1, col)
+                if state[up]==0 and self.board[up]==0:
+                    adjacent_nodes.append((up,[UP]))
+                    
+            if col!=8:
+                right = (row, col+1)
+                if state[right]==0 and self.board[right]==0:
+                    adjacent_nodes.append((right,[RIGHT]))
+                    
+            if col!=0:
+                left = (row, col-1)
+                if state[left]==0 and self.board[left]==0:
+                    adjacent_nodes.append((left,[LEFT]))
+                    
+            for node in adjacent_nodes:
+                picked_node_directions = open_nodes[picked_node]
+                estimated_distance = distance_matrix[picked_node]+1
+                for direction in picked_node_directions:
+                    if direction==node[1][0]:
+                        estimated_distance -=1
+                
+                if distance_matrix[node[0]]==np.inf:
+                    open_nodes[node[0]]=node[1]
+                    open_values[node[0]]=estimated_distance
+                    distance_matrix[node[0]] = estimated_distance
+                else:
+                    if node[0] in open_nodes:
+                        old_directions = open_nodes[node[0]]
+                        if estimated_distance < distance_matrix[node[0]]:
+                            open_nodes[node[0]]=node[1]
+                            open_values[node[0]]=estimated_distance
+                            distance_matrix[node[0]]=estimated_distance
+                        elif estimated_distance == distance_matrix[node[0]]:
+                            open_nodes[node[0]]=old_directions+node[1]
+                            
+            open_nodes.pop(picked_node)
+            open_values.pop(picked_node)
+            
+        return distance_matrix
+                    
+    def averageDistanceToTheKing(self, state):
+        king_row, king_col = self.getKingPosition(state)
+        
+        black_pieces_positions = np.where(state==-1)
+        black_pieces_rows = black_pieces_positions[0]
+        black_pieces_columns = black_pieces_positions[1]
+        
+        difference_row = 0
+        for row in black_pieces_rows:
+            difference_row+= abs(row-king_row)
+        
+        difference_col = 0
+        for col in black_pieces_columns:
+            difference_col+= abs(col-king_col)
+            
+        distance = (difference_row + difference_col) / len(black_pieces_rows)
+        
+        return distance
+    
+    def blackPiecesAroundKing(self, state):
+        king_row, king_col = self.getKingPosition(state)
+        
+        counter=0
+        
+        down = (king_row+1, king_col)
+        if state[down]==-1:
+            counter+=1
+            
+        up = (king_row-1, king_col)
+        if state[up]==-1:
+            counter+=1
+            
+        right = (king_row, king_col+1)
+        if state[right]==-1:
+            counter+=1
+            
+        left = (king_row, king_col-1)
+        if state[left]==-1:
+            counter+=1
+                
+        return counter
+        
+    def distanceToTheEdges(self, distance_matrix):
+        first_row = min(distance_matrix[0,:])
+        last_row = min(distance_matrix[8,:])
+        first_col = min(distance_matrix[:,0])
+        last_col = min(distance_matrix[:,8])
+        
+        result = (min(first_row, last_row, first_col, last_col))
+        
+        if result==np.inf:
+            return result
+        else:
+            return int(result)

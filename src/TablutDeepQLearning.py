@@ -89,12 +89,22 @@ reward_king_captured=-100 #reward for capturing the king
 reward_king_escape=100 #reward for reaching a winning square with the king
 reward_white_capture=5 #reward for capturing a black piece
 reward_black_capture=-5 #reward for capturing a white piece
+reward_king_closer_edge=10 #reward for reducing king's distance to the edges
+reward_king_further_black=3 #reward for getting further from black pieces on average
+reward_king_freedom=10 #reward for getting further from black pieces which were attacking the king
 
+<<<<<<< Updated upstream
 show_board = False #set True to watch the games on a board (this operation does not affect performances)
 show_learning_graph = True
 
 #REMEMBER: keep the / at the end of the path
 cnn_weights_path = "Fourth Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+=======
+show_board = True #set True to watch the games on a board (this operation does not affect performances)
+
+#REMEMBER: keep the / at the end of the path
+cnn_weights_path = "Gaetano new rewards test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+>>>>>>> Stashed changes
 
 save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
 
@@ -129,7 +139,10 @@ agent_black = TablutAgent.DQNAgent(action_size=action_size,
 env = TablutEnvironment.Environment(reward_king_captured=reward_king_captured, 
                                     reward_king_escape=reward_king_escape, 
                                     reward_white_capture=reward_white_capture, 
-                                    reward_black_capture=reward_black_capture, 
+                                    reward_black_capture=reward_black_capture,
+                                    reward_king_closer_edge=reward_king_closer_edge,
+                                    reward_king_further_black=reward_king_further_black,
+                                    reward_king_freedom=reward_king_freedom,
                                     board_path=board_path, 
                                     draw_board=show_board)
 
