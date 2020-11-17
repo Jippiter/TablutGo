@@ -91,11 +91,12 @@ class DQNAgent():
         self.games_q_avg[-1] /= n_moves
         self.games_q_avg.append(0)
 
-    def remember(self, state, action, reward, next_state, done, legal_moves):
+    def remember(self, state, action, reward, next_state, done, legal_moves, weight = 1):
         '''
         Save information about an executed move for replay
         '''
-        self.memory.append((state, action, reward, next_state, done, legal_moves))
+        for i in range(weight):
+            self.memory.append((state, action, reward, next_state, done, legal_moves))
         
     def act(self, state, legal_moves, perfect=False):
         '''

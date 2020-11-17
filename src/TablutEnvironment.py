@@ -264,7 +264,7 @@ class Environment:
             done=True
             self.white_reward+=self.reward_king_escape
             
-        elif self.stateReached(next_state, -self.turn):
+        elif self.stateReached(next_state, -self.turn, 10):
             done=True
             draw=True
             #No reward nor punishment for a draw
@@ -287,10 +287,10 @@ class Environment:
                     self.white_reward+=-self.reward_king_closer_edge * 3
             
             else:
-                #if king_moved and distance_before==distance_after:
-                    #self.white_reward+=-self.reward_king_closer_edge//2
-                #else:
-                self.white_reward+=self.reward_king_closer_edge * (distance_before-distance_after)
+                if distance_before!=np.inf:
+                    self.white_reward+=self.reward_king_closer_edge * (distance_before-distance_after)
+                else:
+                    self.white_reward+=self.reward_king_closer_edge * 2
             
             average_distance_before = self.averageDistanceToTheKing(self.current_state)
             average_distance_after = self.averageDistanceToTheKing(next_state)
@@ -362,11 +362,14 @@ class Environment:
         
         return self.isLegalMove(state,from_row, from_column, to_row, to_column)
     
-    def stateReached(self, state, turn):
+    def stateReached(self, state, turn, times = 2):
+        counter = 1
         for reached_state in self.reached_states:
             state_comparison = reached_state[0]==state
             if state_comparison.all() and reached_state[1]==turn:
-                return True
+                counter+=1
+                if counter==times:
+                    return True
             
         return False
     
@@ -480,9 +483,9 @@ class Environment:
                                 if state[enemy[0] + 1, enemy[1]] + state[enemy[0] - 1, enemy[1]] + state[enemy[0], enemy[1] + 1] + state[enemy[0], enemy[1] - 1] == -3:
                                     next_state[enemy[0], enemy[1]] = 0
                                     number_of_captures += 1
-                                else:
-                                    next_state[enemy[0],enemy[1]]=0
-                                    number_of_captures+=1
+                            else:
+                                next_state[enemy[0],enemy[1]]=0
+                                number_of_captures+=1
             except IndexError:
                 pass
 

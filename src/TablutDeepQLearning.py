@@ -66,6 +66,7 @@ def loadAgents(agent_white, agent_black,path):
             a_black = pickle.load(data_black)
             
         print("Agents loaded")
+        print("Current epsilon: {}".format(a_white.epsilon))
             
     return a_white, a_black, already_trained
 
@@ -73,16 +74,17 @@ def loadAgents(agent_white, agent_black,path):
 
 gamma = 0.95 #discount factor
 epsilon = 1.0 #exploration probability (random move choice)
-epsilon_min = 0.05 #lower bound for epsilon
-epsilon_decay = 0.9998 #speed for epsilon decay at each learning step (replay)
+epsilon_min = 0.1 #lower bound for epsilon
+epsilon_decay = 0.999955 #speed for epsilon decay at each learning step (replay)
 learning_rate = 0.00025
 batch_size = 32 #number of samples for replay
 moves_before_replay = 5000 #play this number of moves to get some experience before starting the replay
-memory_len=10000 #max number of last moves to keep in memory
+memory_len=15000 #max number of last moves to keep in memory
 split_input_channels = True #set to True to split CNN's board input state into two channels (white pieces and black ones)
 action_size=9*9*16 #number of possible actions (moves); output for the CNN
 number_of_games=10000 #ideal numbe of games to play before the algorithm stops (not important, as it can be manually stopped and executed again)
 update_model_target= 5000 #number of moves required to update weights on the model target
+weight_done_steps = 5 #probability to replay the most important positions (black wins or white wins)
 
 #These rewards refer to white's perspective
 reward_king_captured=-100 #reward for capturing the king
@@ -93,12 +95,9 @@ reward_king_closer_edge=10 #reward for reducing king's distance to the edges
 reward_king_further_black=5 #reward for getting further from black pieces on average
 reward_king_freedom=10 #reward for getting further from black pieces which were attacking the king
 
-show_board = False #set True to watch the games on a board (this operation does not affect performances)
 show_learning_graph = True
 
-#REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Fourth Test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
-show_board = True #set True to watch the games on a board (this operation does not affect performances)
+show_board = False #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
 cnn_weights_path = "Gaetano new rewards test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
@@ -199,7 +198,11 @@ try:
             next_state, reward, done, draw, legal_moves = env.step(action)
             if replay_mode:
                 agent_white.add_q_avg(reward)
-            agent_white.remember(state, action, reward, next_state, done, legal_moves)
+                
+            if done and not draw:
+                agent_white.remember(state, action, reward, next_state, done, legal_moves, weight_done_steps)
+            else:    
+                agent_white.remember(state, action, reward, next_state, done, legal_moves)
 
             state = next_state
 
@@ -224,7 +227,10 @@ try:
                 agent_black.add_q_avg(reward)
             next_state, reward, done, draw, legal_moves = env.step(action)
 
-            agent_black.remember(state, action, reward, next_state, done, legal_moves)
+            if done and not draw:
+                agent_black.remember(state, action, reward, next_state, done, legal_moves, weight_done_steps)
+            else:    
+                agent_black.remember(state, action, reward, next_state, done, legal_moves)
 
             state = next_state
 
