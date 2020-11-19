@@ -11,7 +11,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import glob
 
-agent_path = "Valerio Test/"
+agent_path = "Gaetano basic test/"
 
 class CommandLineException(Exception):
 	pass
@@ -52,6 +52,9 @@ env = TablutEnvironment.Environment(reward_king_captured=0,
                                 reward_king_escape=0,
                                 reward_white_capture=0,
                                 reward_black_capture=0,
+				reward_king_closer_edge=0,
+				reward_king_further_black=0, 
+				reward_king_freedom=0,
                                 board_path="../Resources/board.png",
                                 draw_board=False)
 
@@ -123,7 +126,7 @@ while True:
 			print("Turn is {}".format(data['turn']))
 			if data['turn'] == player_color:
 				print("Computing and sending action.")
-				action=agent.act_perfect(state, legal_moves)
+				action=agent.act(state, legal_moves, True)
 				fro, to=env.actionToCoordinates(action, server=True)
 				send_move(connHandle, fro, to, player_color)
 				print("Action sent!")

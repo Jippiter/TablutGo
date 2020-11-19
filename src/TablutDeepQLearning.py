@@ -72,35 +72,36 @@ def loadAgents(agent_white, agent_black,path):
 
 #Parameters
 
-gamma = 0.95 #discount factor
+gamma = 0.6 #discount factor
 epsilon = 1.0 #exploration probability (random move choice)
 epsilon_min = 0.1 #lower bound for epsilon
 epsilon_decay = 0.999955 #speed for epsilon decay at each learning step (replay)
 learning_rate = 0.00025
-batch_size = 32 #number of samples for replay
+batch_size = 8 #number of samples for replay
 moves_before_replay = 5000 #play this number of moves to get some experience before starting the replay
-memory_len=15000 #max number of last moves to keep in memory
+memory_len=20000 #max number of last moves to keep in memory
 split_input_channels = True #set to True to split CNN's board input state into two channels (white pieces and black ones)
 action_size=9*9*16 #number of possible actions (moves); output for the CNN
-number_of_games=10000 #ideal numbe of games to play before the algorithm stops (not important, as it can be manually stopped and executed again)
-update_model_target= 5000 #number of moves required to update weights on the model target
-weight_done_steps = 5 #probability to replay the most important positions (black wins or white wins)
+number_of_games=10000 #ideal number of games to play before the algorithm stops (not important, as it can be manually stopped and executed again)
+update_model_target= 500 #number of moves required to update weights on the model target
+weight_done_steps = 20 #probability to replay the most important positions (black wins or white wins)
 
 #These rewards refer to white's perspective
 reward_king_captured=-100 #reward for capturing the king
 reward_king_escape=100 #reward for reaching a winning square with the king
-reward_white_capture=5 #reward for capturing a black piece
-reward_black_capture=-5 #reward for capturing a white piece
+reward_white_capture=25 #reward for capturing a black piece
+reward_black_capture=-25 #reward for capturing a white piece
 reward_king_closer_edge=10 #reward for reducing king's distance to the edges
 reward_king_further_black=5 #reward for getting further from black pieces on average
 reward_king_freedom=10 #reward for getting further from black pieces which were attacking the king
+reward_delaying=-1 #reward for taking a turn without any reward
 
 show_learning_graph = True
 
 show_board = False #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Gaetano new rewards test/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+cnn_weights_path = "Valerio Test v3/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
 save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
 

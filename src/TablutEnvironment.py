@@ -299,7 +299,13 @@ class Environment:
             pieces_around_before = self.blackPiecesAroundKing(self.current_state)
             pieces_around_after = self.blackPiecesAroundKing(next_state)
             self.white_reward+=self.reward_king_freedom * (pieces_around_before-pieces_around_after)
-                
+        
+        if self.white_reward == 0:
+            if self.turn==self.BLACK:
+                self.white_reward+=self.reward_delaying
+            else:
+                self.white_reward-=self.reward_delaying
+        
         self.current_state=next_state
         self.reached_states.append((self.current_state,self.turn))
         self.distance_matrix = next_distance_matrix
