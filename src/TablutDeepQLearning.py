@@ -140,6 +140,7 @@ env = TablutEnvironment.Environment(reward_king_captured=reward_king_captured,
                                     reward_king_closer_edge=reward_king_closer_edge,
                                     reward_king_further_black=reward_king_further_black,
                                     reward_king_freedom=reward_king_freedom,
+                                    reward_delaying=reward_delaying,
                                     board_path=board_path, 
                                     draw_board=show_board)
 

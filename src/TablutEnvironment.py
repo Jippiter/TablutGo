@@ -7,7 +7,7 @@ import time
 
 class Environment:
     
-    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, reward_king_closer_edge, reward_king_further_black, reward_king_freedom, board_path, draw_board):
+    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, reward_king_closer_edge, reward_king_further_black, reward_king_freedom, reward_delaying, board_path, draw_board):
         self.current_state=None
         self.turn=None
         self.reached_states = None
@@ -22,6 +22,7 @@ class Environment:
         self.reward_king_closer_edge = reward_king_closer_edge
         self.reward_king_further_black = reward_king_further_black
         self.reward_king_freedom = reward_king_freedom
+        self.reward_delaying = reward_delaying
         self.board_path=board_path
         self.draw_board=draw_board
         
