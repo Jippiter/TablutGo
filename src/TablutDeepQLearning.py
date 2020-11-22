@@ -72,7 +72,7 @@ def loadAgents(agent_white, agent_black,path):
 
 #Parameters
 
-gamma = 0.9 #discount factor
+gamma = 0.95 #discount factor
 epsilon = 1.0 #exploration probability (random move choice)
 epsilon_min = 0.1 #lower bound for epsilon
 epsilon_decay = 0.999955 #speed for epsilon decay at each learning step (replay)
