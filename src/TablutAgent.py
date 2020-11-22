@@ -49,9 +49,9 @@ class DQNAgent():
     
     def _build_model(self):
         
-        input_shape=(9,9,2) if self.split_channels else (9,9,1)
+        input_shape=(9,9,3) if self.split_channels else (9,9,1)
         
-        inputs = layers.Input(shape=input_shape) #Input=board state (9x9) in one single channel or two (one for white pieces and one for black ones)
+        inputs = layers.Input(shape=input_shape) #Input=board state (9x9) in one single channel or three (one for white pieces, one for the king and one for black pieces)
 
         # Convolutions on the frames on the screen
         layer1 = layers.Conv2D(32, 3, strides=1, activation="relu")(inputs)
@@ -59,11 +59,12 @@ class DQNAgent():
         layer3 = layers.Conv2D(64, 3, strides=1, activation="relu")(layer2)
         
         layer4 = layers.Flatten()(layer3)
+        layer5 = layers.Dense(512, activation="relu")(layer4)
     
-        action = layers.Dense(self.action_size, activation="linear")(layer4)
+        action = layers.Dense(self.action_size, activation="linear")(layer5)
 
         model = keras.Model(inputs=inputs, outputs=action)
-        model.compile(loss=keras.losses.Huber(), optimizer=keras.optimizers.Adam(lr=self.learning_rate))
+        model.compile(loss=keras.losses.Huber(), optimizer=keras.optimizers.Adam(lr=self.learning_rate, clipnorm=1.0))
         
         return model
     
@@ -71,13 +72,18 @@ class DQNAgent():
         
         if self.split_channels:
             channel_white = np.copy(state)
-            channel_white = np.where(channel_white==-1, 0, channel_white)
+            channel_white = np.where(channel_white!=1, 0, channel_white)
             channel_black = np.copy(state)
-            channel_black = np.where(channel_black>0, 0, channel_black)
+            channel_black = np.where(channel_black!=-1, 0, channel_black)
+            channel_black = np.where(channel_black==-1, 1, channel_black)
+            channel_king = np.copy(state)
+            channel_king = np.where(channel_king!=3, 0, channel_king)
+            channel_king = np.where(channel_king==3, 1, channel_king)
             
-            input_state=np.zeros((9, 9, 2))
+            input_state=np.zeros((9, 9, 3))
             input_state[:,:,0] = np.reshape(channel_white, (9,9))
             input_state[:,:,1] = np.reshape(channel_black, (9,9))
+            input_state[:,:,2] = np.reshape(channel_king, (9,9))
             
             return np.expand_dims(input_state, axis=0)
         

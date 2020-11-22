@@ -7,7 +7,7 @@ import time
 
 class Environment:
     
-    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, reward_king_closer_edge, reward_king_further_black, reward_king_freedom, board_path, draw_board):
+    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, reward_king_closer_edge, reward_king_further_black, reward_king_freedom, reward_neutral_move, board_path, draw_board):
         self.current_state=None
         self.turn=None
         self.reached_states = None
@@ -22,6 +22,7 @@ class Environment:
         self.reward_king_closer_edge = reward_king_closer_edge
         self.reward_king_further_black = reward_king_further_black
         self.reward_king_freedom = reward_king_freedom
+        self.reward_neutral_move = reward_neutral_move
         self.board_path=board_path
         self.draw_board=draw_board
         
@@ -227,6 +228,8 @@ class Environment:
         
         king_moved = self.getKingPosition(self.current_state)==from_coordinates
         
+        previous_reward = self.white_reward
+        
         from_column = self.columns_dictionary[from_coordinates[0]]
         from_row = self.rows_dictionary[from_coordinates[1]]
         
@@ -299,6 +302,9 @@ class Environment:
             pieces_around_before = self.blackPiecesAroundKing(self.current_state)
             pieces_around_after = self.blackPiecesAroundKing(next_state)
             self.white_reward+=self.reward_king_freedom * (pieces_around_before-pieces_around_after)
+            
+        if previous_reward == self.white_reward and self.turn==self.BLACK:
+            self.white_reward+=self.reward_neutral_move
                 
         self.current_state=next_state
         self.reached_states.append((self.current_state,self.turn))
