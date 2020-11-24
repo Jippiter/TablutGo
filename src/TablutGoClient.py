@@ -11,7 +11,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import glob
 
-agent_path = "Gaetano basic test/"
+agent_path = "Jip Test v3/"
 
 class CommandLineException(Exception):
 	pass
@@ -55,6 +55,7 @@ env = TablutEnvironment.Environment(reward_king_captured=0,
 				reward_king_closer_edge=0,
 				reward_king_further_black=0, 
 				reward_king_freedom=0,
+								reward_delaying=0,
                                 board_path="../Resources/board.png",
                                 draw_board=False)
 
