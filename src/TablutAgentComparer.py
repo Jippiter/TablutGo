@@ -51,6 +51,7 @@ def compare(player_1_path, player_2_path, games=100, player_1_split_channels=Tru
                                         reward_king_closer_edge=0,
                                         reward_king_further_black=0,
                                         reward_king_freedom=0,
+                                        reward_neutral_move=0,
                                         board_path=board_path, 
                                         draw_board=show_board)
     
@@ -154,4 +155,4 @@ def compare(player_1_path, player_2_path, games=100, player_1_split_channels=Tru
     print("Player 1 scored: {}".format(player_1_white_score + player_1_black_score), "/{}".format(games*2))
 
 #Example
-compare("Gaetano new rewards test 2/", "Gaetano new rewards test 2/", player_1_split_channels=False, player_2_split_channels=False)
+compare("Gaetano new CNN - three channels fast/", "Gaetano new CNN - three channels fast/", player_1_split_channels=True, player_2_split_channels=True)

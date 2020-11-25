@@ -77,13 +77,13 @@ epsilon = 1.0 #exploration probability (random move choice)
 epsilon_min = 0.1 #lower bound for epsilon
 epsilon_decay = 0.999955 #speed for epsilon decay at each learning step (replay)
 learning_rate = 0.0005
-batch_size = 16 #number of samples for replay
+batch_size = 8 #number of samples for replay
 moves_before_replay = 5000 #play this number of moves to get some experience before starting the replay
 memory_len=10000 #max number of last moves to keep in memory
 split_input_channels = True #set to True to split CNN's board input state into three channels (white pieces, black pieces, king)
 action_size=9*9*16 #number of possible actions (moves); output for the CNN
 number_of_games=5000 #ideal numbe of games to play before the algorithm stops (not important, as it can be manually stopped and executed again)
-update_model_target= batch_size * 100 #number of moves required to update weights on the model target
+update_model_target= batch_size * 30 #number of moves required to update weights on the model target
 weight_done_steps = 5 #probability to replay the most important positions (black wins or white wins)
 
 #These rewards refer to white's perspective
@@ -101,7 +101,7 @@ show_learning_graph = True
 show_board = True #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Gaetano new CNN - three channels/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+cnn_weights_path = "Gaetano new CNN - three channels fast/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
 save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
 
