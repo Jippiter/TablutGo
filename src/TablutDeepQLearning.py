@@ -98,7 +98,7 @@ reward_delaying=-1 #reward for taking a turn without any reward
 
 show_learning_graph = True
 
-show_board = True #set True to watch the games on a board (this operation does not affect performances)
+show_board = False #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
 cnn_weights_path = "Jip Test v3/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
