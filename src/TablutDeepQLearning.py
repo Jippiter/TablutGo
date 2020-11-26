@@ -74,7 +74,7 @@ def loadAgents(agent_white, agent_black,path):
 
 gamma = 0.6 #discount factor
 epsilon = 1.0 #exploration probability (random move choice)
-epsilon_min = 0.1 #lower bound for epsilon
+epsilon_min = 0.001 #lower bound for epsilon
 epsilon_decay = 0.999955 #speed for epsilon decay at each learning step (replay)
 learning_rate = 0.00025
 batch_size = 8 #number of samples for replay
@@ -87,10 +87,10 @@ update_model_target= 500 #number of moves required to update weights on the mode
 weight_done_steps = 20 #probability to replay the most important positions (black wins or white wins)
 
 #These rewards refer to white's perspective
-reward_king_captured=-500 #reward for capturing the king
-reward_king_escape=500 #reward for reaching a winning square with the king
-reward_white_capture=75 #reward for capturing a black piece
-reward_black_capture=-75 #reward for capturing a white piece
+reward_king_captured=-5000 #reward for capturing the king
+reward_king_escape=5000 #reward for reaching a winning square with the king
+reward_white_capture=25 #reward for capturing a black piece
+reward_black_capture=-25 #reward for capturing a white piece
 reward_king_closer_edge=50 #reward for reducing king's distance to the edges
 reward_king_further_black=25 #reward for getting further from black pieces on average
 reward_king_freedom=50  #reward for getting further from black pieces which were attacking the king
@@ -98,10 +98,10 @@ reward_delaying=-1 #reward for taking a turn without any reward
 
 show_learning_graph = True
 
-show_board = False #set True to watch the games on a board (this operation does not affect performances)
+show_board = True #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Jip Test v3/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+cnn_weights_path = "Comparison/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
 save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
 
