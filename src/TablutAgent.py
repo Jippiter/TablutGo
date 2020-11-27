@@ -49,9 +49,9 @@ class DQNAgent():
     
     def _build_model(self):
         
-        input_shape=(9,9,2) if self.split_channels else (9,9,1)
+        input_shape=(9,9,3) if self.split_channels else (9,9,1)
         
-        inputs = layers.Input(shape=input_shape) #Input=board state (9x9) in one single channel or two (one for white pieces and one for black ones)
+        inputs = layers.Input(shape=input_shape) #Input=board state (9x9) in one single channel or three (one for white pieces, one for the king and one for black pieces)
 
         # Convolutions on the frames on the screen
         layer1 = layers.Conv2D(32, 3, strides=1, activation="relu")(inputs)
@@ -59,11 +59,12 @@ class DQNAgent():
         layer3 = layers.Conv2D(64, 3, strides=1, activation="relu")(layer2)
         
         layer4 = layers.Flatten()(layer3)
+        layer5 = layers.Dense(512, activation="relu")(layer4)
     
-        action = layers.Dense(self.action_size, activation="linear")(layer4)
+        action = layers.Dense(self.action_size, activation="linear")(layer5)
 
         model = keras.Model(inputs=inputs, outputs=action)
-        model.compile(loss=keras.losses.Huber(), optimizer=keras.optimizers.Adam(lr=self.learning_rate))
+        model.compile(loss=keras.losses.Huber(), optimizer=keras.optimizers.Adam(lr=self.learning_rate, clipnorm=1.0))
         
         return model
     
@@ -71,14 +72,20 @@ class DQNAgent():
         
         if self.split_channels:
             channel_white = np.copy(state)
-            channel_white = np.where(channel_white==-1, 0, channel_white)
+            channel_white = np.where(channel_white!=1, 0, channel_white)
             channel_black = np.copy(state)
-            channel_black = np.where(channel_black>0, 0, channel_black)
+            channel_black = np.where(channel_black!=-1, 0, channel_black)
+            channel_black = np.where(channel_black==-1, 1, channel_black)
+            channel_king = np.copy(state)
+            channel_king = np.where(channel_king!=3, 0, channel_king)
+            channel_king = np.where(channel_king==3, 1, channel_king)
             
-            input_state=np.zeros((9, 9, 2))
+            input_state=np.zeros((9, 9, 3))
             input_state[:,:,0] = np.reshape(channel_white, (9,9))
             input_state[:,:,1] = np.reshape(channel_black, (9,9))
-            
+            input_state[:,:,2] = np.reshape(channel_king, (9,9))
+
+
             return np.expand_dims(input_state, axis=0)
         
         else:    
@@ -131,16 +138,75 @@ class DQNAgent():
             self.model.fit(self.reshapeInput(state), target_f, epochs=1, verbose=0) #train model
             #POSSIBLE IMPROVEMENT: replace this function with "manual" operations to reduce complexity (see "DeepQLearning.py")
             
-            self.replayed_positions+=1
-            if self.replayed_positions % self.update_model_target ==0:
-                self.model_target.set_weights(self.model.get_weights()) #sync model_target periodically
+        self.replayed_positions+=1
+        if self.replayed_positions % self.update_model_target ==0:
+            self.model_target.set_weights(self.model.get_weights()) #sync model_target periodically
             
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay #reduce exploration and increase exploitation
             if self.epsilon < self.epsilon_min:
                 self.epsilon = self.epsilon_min
             
+    def replayOptimized(self, batch_size):
+        loss_function = keras.losses.Huber()
+        optimizer=keras.optimizers.Adam(lr=self.learning_rate, clipnorm=1.0)
         
+        # Get indices of samples for replay buffers
+        minibatch = random.sample(self.memory,batch_size)
+
+        # Using list comprehension to sample from replay buffer
+        state_sample = []
+        action_sample = []
+        rewards_sample = []
+        state_next_sample = []
+        done_sample = []
+        legal_moves_sample = []
+        
+        for sample in minibatch:
+            state_sample.append(self.reshapeInput(sample[0]))
+            state_next_sample.append(self.reshapeInput(sample[3]))
+            action_sample.append(sample[1])
+            rewards_sample.append(sample[2])
+            done_sample.append(sample[4])
+            legal_moves_sample.append(sample[5])
+
+        state_sample = np.reshape(np.array([state_sample]),(batch_size,9,9,3))
+        state_next_sample = np.reshape(np.array([state_next_sample]),(batch_size,9,9,3))
+        # Build the updated Q-values for the sampled future states
+        # Use the target model for stability
+        future_rewards = self.model_target.predict(state_next_sample)
+        predicted_q_values = np.zeros((batch_size))
+        for i in range(batch_size):
+            masked_rewards = future_rewards[i][legal_moves_sample[i]]
+            predicted_q_values[i] = tf.reduce_max(masked_rewards, axis=0) if self.colour=="W" else tf.reduce_min(masked_rewards, axis=0)
+        # Q value = reward + discount factor * expected future reward
+        updated_q_values = rewards_sample + done_sample * (self.gamma * predicted_q_values)
+
+
+        # Create a mask so we only calculate loss on the updated Q-values
+        masks = tf.one_hot(action_sample, self.action_size)
+
+        with tf.GradientTape() as tape:
+            # Train the model on the states and updated Q-values
+            q_values = self.model(state_sample)
+
+            # Apply the masks to the Q-values to get the Q-value for action taken
+            q_action = tf.reduce_sum(tf.multiply(q_values, masks), axis=1)
+            # Calculate loss between new Q-value and old Q-value
+            loss = loss_function(updated_q_values, q_action)
+
+        # Backpropagation
+        grads = tape.gradient(loss, self.model.trainable_variables)
+        optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+        
+        self.replayed_positions+=1
+        if self.replayed_positions % self.update_model_target ==0:
+            self.model_target.set_weights(self.model.get_weights()) #sync model_target periodically
+            
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay #reduce exploration and increase exploitation
+            if self.epsilon < self.epsilon_min:
+                self.epsilon = self.epsilon_min
             
     def load(self, name):
         '''

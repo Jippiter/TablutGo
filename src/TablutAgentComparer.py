@@ -9,21 +9,21 @@ def compare(player_1_path, player_2_path, games=100, player_1_split_channels=Tru
 
     #Initialize
     
-    parameters_player_1 = open("Weights/" + player_1_path + "Parameters.txt","r")
+    parameters_player_1 = open("../Weights/" + player_1_path + "Parameters.txt","r")
     print("Player 1 parameters:")
     print (parameters_player_1.read())
-    parameters_player_2 = open("Weights/" + player_2_path + "Parameters.txt","r")
+    parameters_player_2 = open("../Weights/" + player_2_path + "Parameters.txt","r")
     print("\nPlayer 2 parameters: ")
     print (parameters_player_2.read() + "\n")
     
     show_board = True #set True to watch the games on a board (this does not affect performances)
     
-    board_path = "Resources/Board.png"
+    board_path = "../Resources/Board.png"
     
     player_1 = TablutAgent.DQNAgent(action_size=9*9*16, 
                                        gamma=0, 
-                                       epsilon=0.1, 
-                                       epsilon_min=0.1, 
+                                       epsilon=0, 
+                                       epsilon_min=0, 
                                        epsilon_decay=0, 
                                        learning_rate=0, 
                                        batch_size=0, 
@@ -34,9 +34,9 @@ def compare(player_1_path, player_2_path, games=100, player_1_split_channels=Tru
     
     player_2 = TablutAgent.DQNAgent(action_size=9*9*16, 
                                        gamma=0, 
-                                       epsilon=0.1, 
-                                       epsilon_min=0.1, 
-                                       epsilon_decay=0, 
+                                       epsilon=1, 
+                                       epsilon_min=1, 
+                                       epsilon_decay=1, 
                                        learning_rate=0, 
                                        batch_size=0, 
                                        memory_len=1, 
@@ -47,14 +47,18 @@ def compare(player_1_path, player_2_path, games=100, player_1_split_channels=Tru
     env = TablutEnvironment.Environment(reward_king_captured=0, 
                                         reward_king_escape=0, 
                                         reward_white_capture=0, 
-                                        reward_black_capture=0, 
+                                        reward_black_capture=0,
+                                        reward_king_closer_edge=0,
+                                        reward_king_further_black=0,
+                                        reward_king_freedom=0,
+                                        reward_neutral_move=0,
                                         board_path=board_path, 
                                         draw_board=show_board)
     
-    player_1_weights_white = glob.glob("Weights/" + player_1_path + "*white*.hdf5")
-    player_1_weights_black = glob.glob("Weights/" + player_1_path + "*black*.hdf5")
-    player_2_weights_white = glob.glob("Weights/" + player_2_path + "*white*.hdf5")
-    player_2_weights_black = glob.glob("Weights/" + player_2_path + "*black*.hdf5")
+    player_1_weights_white = glob.glob("../Weights/" + player_1_path + "*white*.hdf5")
+    player_1_weights_black = glob.glob("../Weights/" + player_1_path + "*black*.hdf5")
+    player_2_weights_white = glob.glob("../Weights/" + player_2_path + "*white*.hdf5")
+    player_2_weights_black = glob.glob("../Weights/" + player_2_path + "*black*.hdf5")
     
     #Round one: player one has white
     
@@ -151,4 +155,4 @@ def compare(player_1_path, player_2_path, games=100, player_1_split_channels=Tru
     print("Player 1 scored: {}".format(player_1_white_score + player_1_black_score), "/{}".format(games*2))
 
 #Example
-compare("First Test/", "Second Test/", player_1_split_channels=False)
+compare("Gaetano new architecture - fast 3/", "Gaetano new architecture - fast 3/", player_1_split_channels=True, player_2_split_channels=True)

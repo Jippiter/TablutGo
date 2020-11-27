@@ -72,38 +72,40 @@ def loadAgents(agent_white, agent_black,path):
 
 #Parameters
 
-gamma = 0.6 #discount factor
+gamma = 0.97 #discount factor
 epsilon = 1.0 #exploration probability (random move choice)
-epsilon_min = 0.001 #lower bound for epsilon
-epsilon_decay = 0.999955 #speed for epsilon decay at each learning step (replay)
-learning_rate = 0.00025
-batch_size = 8 #number of samples for replay
+epsilon_min = 0.1 #lower bound for epsilon
+epsilon_decay = 0.999985 #speed for epsilon decay at each learning step (replay)
+learning_rate = 0.0005
+batch_size = 32 #number of samples for replay
 moves_before_replay = 5000 #play this number of moves to get some experience before starting the replay
-memory_len=20000 #max number of last moves to keep in memory
-split_input_channels = True #set to True to split CNN's board input state into two channels (white pieces and black ones)
+memory_len=10000 #max number of last moves to keep in memory
+split_input_channels = True #set to True to split CNN's board input state into three channels (white pieces, black pieces, king)
 action_size=9*9*16 #number of possible actions (moves); output for the CNN
-number_of_games=10000 #ideal number of games to play before the algorithm stops (not important, as it can be manually stopped and executed again)
+number_of_games=10000 #ideal numbe of games to play before the algorithm stops (not important, as it can be manually stopped and executed again)
 update_model_target= 500 #number of moves required to update weights on the model target
-weight_done_steps = 20 #probability to replay the most important positions (black wins or white wins)
+weight_done_steps = 5 #probability to replay the most important positions (black wins or white wins)
 
 #These rewards refer to white's perspective
-reward_king_captured=-5000 #reward for capturing the king
-reward_king_escape=5000 #reward for reaching a winning square with the king
+reward_king_captured=-500 #reward for capturing the king
+reward_king_escape=500 #reward for reaching a winning square with the king
 reward_white_capture=25 #reward for capturing a black piece
 reward_black_capture=-25 #reward for capturing a white piece
-reward_king_closer_edge=50 #reward for reducing king's distance to the edges
-reward_king_further_black=25 #reward for getting further from black pieces on average
-reward_king_freedom=50  #reward for getting further from black pieces which were attacking the king
-reward_delaying=-1 #reward for taking a turn without any reward
+reward_king_closer_edge=25 #reward for reducing king's distance to the edges
+reward_king_further_black=0 #reward for getting further from black pieces on average
+reward_king_freedom=25 #reward for getting further from black pieces which were attacking the king
+reward_neutral_move=-10 #reward for making neutral moves (no rewards nor punishment)
+
 
 show_learning_graph = True
 
 show_board = True #set True to watch the games on a board (this operation does not affect performances)
 
 #REMEMBER: keep the / at the end of the path
-cnn_weights_path = "Comparison/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
-save_weights_step = 50 #Save the CNNs' weights after each multiple of this number
+cnn_weights_path = "Jip new architecture/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+
+save_weights_step = 250 #Save the CNNs' weights after each multiple of this number
 
 board_path = "../Resources/Board.png"
 
@@ -139,8 +141,9 @@ env = TablutEnvironment.Environment(reward_king_captured=reward_king_captured,
                                     reward_black_capture=reward_black_capture,
                                     reward_king_closer_edge=reward_king_closer_edge,
                                     reward_king_further_black=reward_king_further_black,
-                                    reward_king_freedom=reward_king_freedom,
-                                    reward_delaying=reward_delaying,
+
+                                    reward_neutral_move=reward_neutral_move,
+
                                     board_path=board_path, 
                                     draw_board=show_board)
 
@@ -191,20 +194,37 @@ try:
             saveWeights(agent_white,agent_black,output_dir,e-random_games+1)
             saveAgents(agent_white, agent_black, output_dir, e-random_games+1)
 
-        moves=0
+        moves = 0
+        
+        reward_white = 0
+        reward_black = 0
+        first_move = True
+        bundle_w = None
+        bundle_b = None
+        
         while True:
             moves+=1
 
             action = agent_white.act(state, legal_moves)
 
-            next_state, reward, done, draw, legal_moves = env.step(action)
+            next_state, reward_white, done, draw, legal_moves = env.step(action)
+            bundle_w = (state, action, next_state, done, legal_moves)
+            
+            reward = reward_white + reward_black if reward_white>0 else reward_black
+            
             if replay_mode:
-                agent_white.add_q_avg(reward)
-                
+                if not first_move:
+                    agent_black.add_q_avg(reward)
+                if done: 
+                    agent_white.add_q_avg(reward_white)
+
             if done and not draw:
-                agent_white.remember(state, action, reward, next_state, done, legal_moves, weight_done_steps)
+                agent_white.remember(state, action, reward_white, next_state, done, legal_moves, weight_done_steps)
+                if not first_move:
+                    agent_black.remember(bundle_b[0], bundle_b[1], reward, bundle_b[2], bundle_b[3], bundle_b[4], weight_done_steps)
             else:    
-                agent_white.remember(state, action, reward, next_state, done, legal_moves)
+                if not first_move:
+                    agent_black.remember(bundle_b[0], bundle_b[1], reward, bundle_b[2], bundle_b[3], bundle_b[4])
 
             state = next_state
 
@@ -213,7 +233,7 @@ try:
                     replay_mode = True
                     random_games=e
                     print("Replay mode started...")
-                agent_white.replay(batch_size)
+                agent_white.replayOptimized(batch_size)
 
             if done:
                 if replay_mode:
@@ -223,16 +243,25 @@ try:
                 headline = "Random game" if not replay_mode else "Game"
                 print (headline, "n.{} has ended: ".format(e+1 - random_games) + result + " after {} moves".format(moves))
                 break
+            
+            first_move = False
 
             action = agent_black.act(state, legal_moves)
+            next_state, reward_black, done, draw, legal_moves = env.step(action)
+            bundle_b = (state, action, next_state, done, legal_moves)
+            
+            reward = reward_white + reward_black if reward_black<0 else reward_white
+            
             if replay_mode:
-                agent_black.add_q_avg(reward)
-            next_state, reward, done, draw, legal_moves = env.step(action)
+                agent_white.add_q_avg(reward)
+                if done: 
+                    agent_black.add_q_avg(reward_black)
 
             if done and not draw:
-                agent_black.remember(state, action, reward, next_state, done, legal_moves, weight_done_steps)
+                agent_black.remember(state, action, reward_black, next_state, done, legal_moves, weight_done_steps)
+                agent_white.remember(bundle_w[0], bundle_w[1], reward, bundle_w[2], bundle_w[3], bundle_w[4], weight_done_steps)
             else:    
-                agent_black.remember(state, action, reward, next_state, done, legal_moves)
+                agent_white.remember(bundle_w[0], bundle_w[1], reward, bundle_w[2], bundle_w[3], bundle_w[4])
 
             state = next_state
 
@@ -241,7 +270,7 @@ try:
                     replay_mode = True
                     random_games=e
                     print("Replay mode started...")
-                agent_black.replay(batch_size)
+                agent_black.replayOptimized(batch_size)
 
             if done:
                 if replay_mode:
