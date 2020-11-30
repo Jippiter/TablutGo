@@ -36,8 +36,8 @@ def JSON_to_local_state(data):
 				new_state[i, j] = -1
 			elif board[i][j] == "KING":
 				new_state[i, j] = 3
-            else:
-                new_state[i, j] = 0
+			else:
+				new_state[i, j] = 0
 	return new_state, data['turn']
 
 # Parse command-line arguments
