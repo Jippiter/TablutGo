@@ -11,7 +11,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import glob
 
-agent_path = "Valerio Final/"
+agent_path = "BVJW/"
 
 class CommandLineException(Exception):
 	pass
