@@ -74,7 +74,7 @@ if player_color.lower() == "white":
                                      update_model_target=0,
                                      split_channels=True,
                                      colour="W")
-	agent_weights = glob.glob("../Weights/" + agent_path + "*white*.hdf5")
+	agent_weights = glob.glob("Weights/" + agent_path + "*white*.hdf5")
 	# Load weights
 	if len(agent_weights) > 0:
 		agent.load(agent_weights[-1])
@@ -94,7 +94,7 @@ elif player_color.lower() == "black":
                                  update_model_target=0,
                                  split_channels=True,
                                  colour="B")
-	agent_weights = glob.glob("../Weights/" + agent_path + "*black*.hdf5")
+	agent_weights = glob.glob("Weights/" + agent_path + "*black*.hdf5")
 	# Load weights
 	if len(agent_weights) > 0:
 		agent.load(agent_weights[-1])
@@ -102,7 +102,7 @@ elif player_color.lower() == "black":
 		raise Exception("Weights are None!")
 		exit()
 else:
-	raise CommandLineException("Invalid argument for player!")
+	raise CommandLineException("Invalid argument for player! " + player_color)
 	exit()
 
 # Start connection

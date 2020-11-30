@@ -120,7 +120,7 @@ cnn_weights_path = "Jip new architecture/" #Change folder name to start another 
 
 save_weights_step = 250 #Save the CNNs' weights after each multiple of this number
 
-board_path = "../Resources/Board.png"
+board_path = "Resources/Board.png"
 
 #Initialize
 
@@ -159,7 +159,7 @@ env = TablutEnvironment.Environment(reward_king_captured=reward_king_captured,
                                     board_path=board_path, 
                                     draw_board=show_board)
 
-output_dir = "../Weights/" + cnn_weights_path
+output_dir = "Weights/" + cnn_weights_path
 starting_game_number=0
 replay_mode = False
 
