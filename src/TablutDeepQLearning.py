@@ -7,6 +7,7 @@ import TablutEnvironment
 import TablutAgent
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 def saveParameters(path,gamma, epsilon_min, epsilon_decay, learning_rate, batch_size, split_input_channels, update_model_target, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture):
     '''
@@ -28,8 +29,22 @@ def saveParameters(path,gamma, epsilon_min, epsilon_decay, learning_rate, batch_
     file.close()
 
 def showQAvgPlot(agent_white, agent_black):
-    plt.plot(agent_white.games_q_avg, color='gray', marker='.')
-    plt.plot(agent_black.games_q_avg, color='black', marker='.')
+    white_games=len(agent_white.games_q_avg) -1
+    black_games=len(agent_black.games_q_avg) -1
+    polywhite=None
+    polyblack=None
+    if white_games >= 1:
+        plt.plot(agent_white.games_q_avg[:-2], color='gray')
+        polywhite = np.polyfit(range(white_games-1), agent_white.games_q_avg[:-2], deg=5)
+        polywhite = np.poly1d(polywhite)
+    if black_games >= 1:   
+        plt.plot(agent_black.games_q_avg[:-2], color='black')
+        polyblack = np.polyfit(range(black_games-1), agent_black.games_q_avg[:-2], deg=5)
+        polyblack = np.poly1d(polyblack)
+    if polywhite is not None:
+        plt.plot(polywhite(range(white_games)), linestyle='dashed', color='red')
+    if polyblack is not None:
+        plt.plot(polyblack(range(black_games)), linestyle='dashed', color='blue')       
     plt.show()
 
 def saveWeights(agent_white, agent_black, output_dir, epoch):
@@ -72,7 +87,7 @@ def loadAgents(agent_white, agent_black,path):
 
 #Parameters
 
-gamma = 0.97 #discount factor
+gamma = 0.9 #discount factor
 epsilon = 1.0 #exploration probability (random move choice)
 epsilon_min = 0.001 #lower bound for epsilon
 epsilon_decay = 0.999985 #speed for epsilon decay at each learning step (replay)
@@ -87,21 +102,19 @@ update_model_target= 500 #number of moves required to update weights on the mode
 weight_done_steps = 5 #probability to replay the most important positions (black wins or white wins)
 
 #These rewards refer to white's perspective
-reward_king_captured=-500 #reward for capturing the king
-reward_king_escape=500 #reward for reaching a winning square with the king
+reward_king_captured=-1000 #reward for capturing the king
+reward_king_escape=1000 #reward for reaching a winning square with the king
 reward_white_capture=25 #reward for capturing a black piece
 reward_black_capture=-25 #reward for capturing a white piece
 reward_king_closer_edge=25 #reward for reducing king's distance to the edges
-reward_king_further_black=0 #reward for getting further from black pieces on average
+reward_king_further_black=3 #reward for getting further from black pieces on average
 reward_king_freedom=25 #reward for getting further from black pieces which were attacking the king
 reward_neutral_move=-10 #reward for making neutral moves (no rewards nor punishment)
 
 
 show_learning_graph = True
 
-show_board = True #set True to watch the games on a board (this operation does not affect performances)
-
-#REMEMBER: keep the / at the end of the path
+show_board = False #set True to watch the games on a board (this operation does not affect performances)
 
 cnn_weights_path = "Jip new architecture/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
@@ -143,7 +156,6 @@ env = TablutEnvironment.Environment(reward_king_captured=reward_king_captured,
                                     reward_king_further_black=reward_king_further_black,
                                     reward_king_freedom=reward_king_freedom,
                                     reward_neutral_move=reward_neutral_move,
-
                                     board_path=board_path, 
                                     draw_board=show_board)
 

@@ -11,7 +11,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import glob
 
-agent_path = "Jip new architecture/"
+agent_path = "Valerio Final/"
 
 class CommandLineException(Exception):
 	pass
@@ -30,16 +30,15 @@ def JSON_to_local_state(data):
 	new_state = np.ndarray((9, 9), dtype=int)
 	for i in range(len(board[0])):
 		for j in range(len(board)):
-			if board[i][j] == "EMPTY":
-				new_state[i, j] = 0
-			elif board[i][j] == "WHITE":
+			if board[i][j] == "WHITE":
 				new_state[i, j] = 1
 			elif board[i][j] == "BLACK":
 				new_state[i, j] = -1
 			elif board[i][j] == "KING":
 				new_state[i, j] = 3
+            else:
+                new_state[i, j] = 0
 	return new_state, data['turn']
-
 
 # Parse command-line arguments
 if len(sys.argv) != 3:
@@ -52,9 +51,9 @@ env = TablutEnvironment.Environment(reward_king_captured=0,
                                 reward_king_escape=0,
                                 reward_white_capture=0,
                                 reward_black_capture=0,
-								reward_king_closer_edge=0,
-								reward_king_further_black=0,
-								reward_king_freedom=0,
+                                reward_king_closer_edge=0,
+                                reward_king_further_black=0, 
+                                reward_king_freedom=0,
 								reward_neutral_move=0,
                                 board_path="../Resources/board.png",
                                 draw_board=False)
@@ -62,7 +61,7 @@ env = TablutEnvironment.Environment(reward_king_captured=0,
 # Init agent and set port based on command-line color
 port = 0
 agent = None
-if player_color == "WHITE":
+if player_color.lower() == "white":
 	port = 5800
 	agent = TablutAgent.DQNAgent(action_size=9*9*16,
                                      gamma=0,
@@ -82,7 +81,7 @@ if player_color == "WHITE":
 	else:
 		raise Exception("Weights are None!")
 		exit()
-elif player_color == "BLACK":
+elif player_color.lower() == "black":
 	port = 5801
 	agent = TablutAgent.DQNAgent(action_size=9*9*16,
                                  gamma=0,
