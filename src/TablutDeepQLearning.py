@@ -74,7 +74,7 @@ def loadAgents(agent_white, agent_black,path):
 
 gamma = 0.97 #discount factor
 epsilon = 1.0 #exploration probability (random move choice)
-epsilon_min = 0.1 #lower bound for epsilon
+epsilon_min = 0.001 #lower bound for epsilon
 epsilon_decay = 0.999985 #speed for epsilon decay at each learning step (replay)
 learning_rate = 0.0005
 batch_size = 32 #number of samples for replay
@@ -141,7 +141,7 @@ env = TablutEnvironment.Environment(reward_king_captured=reward_king_captured,
                                     reward_black_capture=reward_black_capture,
                                     reward_king_closer_edge=reward_king_closer_edge,
                                     reward_king_further_black=reward_king_further_black,
-
+                                    reward_king_freedom=reward_king_freedom,
                                     reward_neutral_move=reward_neutral_move,
 
                                     board_path=board_path, 
