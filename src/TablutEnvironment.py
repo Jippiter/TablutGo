@@ -6,8 +6,9 @@ from tkinter import *
 import time
 
 class Environment:
-    
-    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, reward_king_closer_edge, reward_king_further_black, reward_king_freedom, board_path, draw_board):
+
+    def __init__(self, reward_king_captured, reward_king_escape, reward_white_capture, reward_black_capture, reward_king_closer_edge, reward_king_further_black, reward_king_freedom, reward_neutral_move, board_path, draw_board):
+
         self.current_state=None
         self.turn=None
         self.reached_states = None
@@ -22,6 +23,8 @@ class Environment:
         self.reward_king_closer_edge = reward_king_closer_edge
         self.reward_king_further_black = reward_king_further_black
         self.reward_king_freedom = reward_king_freedom
+
+        self.reward_neutral_move = reward_neutral_move
         self.board_path=board_path
         self.draw_board=draw_board
         
@@ -222,6 +225,8 @@ class Environment:
         '''
         if not self.isLegalAction(self.current_state, action):
             raise Exception("Illegal move execption")
+            
+        reward = 0
         
         from_coordinates, to_coordinates = self.actionToCoordinates(action)
         
@@ -250,19 +255,19 @@ class Environment:
         
         if self.isKingCaptured(next_state):
             done=True
-            self.white_reward+=self.reward_king_captured
+            reward+=self.reward_king_captured
             
         elif self.isKingOnSafeSquare(next_state):
             done=True
-            self.white_reward+=self.reward_king_escape
+            reward+=self.reward_king_escape
             
         elif self.checkNoLegalMovesRemained(next_state) and self.turn==self.WHITE:
             done=True
-            self.white_reward+=self.reward_king_captured
+            reward+=self.reward_king_captured
             
         elif self.checkNoLegalMovesRemained(next_state) and self.turn==self.BLACK:
             done=True
-            self.white_reward+=self.reward_king_escape
+            reward+=self.reward_king_escape
             
         elif self.stateReached(next_state, -self.turn, 10):
             done=True
@@ -273,10 +278,10 @@ class Environment:
             
         else:
             if self.turn==self.WHITE:
-                self.white_reward+=self.reward_white_capture*number_of_captures
+                reward+=self.reward_white_capture*number_of_captures
                 self.turn=self.BLACK
             else:
-                self.white_reward+=self.reward_black_capture*number_of_captures
+                reward+=self.reward_black_capture*number_of_captures
                 self.turn=self.WHITE
                 
             distance_before = self.distanceToTheEdges(self.distance_matrix)
@@ -284,30 +289,39 @@ class Environment:
             
             if distance_after==np.inf:
                 if distance_before!=np.inf:
-                    self.white_reward+=-self.reward_king_closer_edge * 3
+                    reward+=-self.reward_king_closer_edge
             
             else:
                 if distance_before!=np.inf:
-                    self.white_reward+=self.reward_king_closer_edge * (distance_before-distance_after)
+                    reward+=self.reward_king_closer_edge * (distance_before-distance_after)
                 else:
-                    self.white_reward+=self.reward_king_closer_edge * 2
+                    reward+=self.reward_king_closer_edge
             
             average_distance_before = self.averageDistanceToTheKing(self.current_state)
             average_distance_after = self.averageDistanceToTheKing(next_state)
-            self.white_reward+=self.reward_king_further_black * (average_distance_after-average_distance_before)
+            reward+=self.reward_king_further_black * (average_distance_after-average_distance_before)
             
             pieces_around_before = self.blackPiecesAroundKing(self.current_state)
             pieces_around_after = self.blackPiecesAroundKing(next_state)
-            self.white_reward+=self.reward_king_freedom * (pieces_around_before-pieces_around_after)
+
+            reward+=self.reward_king_freedom * (pieces_around_before-pieces_around_after)
+            
+        if reward == 0:
+            if self.turn==self.BLACK:
+                reward+=self.reward_neutral_move
+            else:
+                reward-=self.reward_neutral_move
                 
+
         self.current_state=next_state
         self.reached_states.append((self.current_state,self.turn))
         self.distance_matrix = next_distance_matrix
+        self.white_reward+=reward
         
         if self.draw_board:
             self.showState(self.current_state)
         
-        return next_state, self.white_reward, done, draw, self.legal_moves
+        return next_state, reward, done, draw, self.legal_moves
     
     def isLegalMove(self, state, from_row, from_column, to_row, to_column):
         '''
