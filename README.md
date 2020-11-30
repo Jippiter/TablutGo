@@ -13,6 +13,7 @@ pip3 install matplotlib          [matplotlib]
 ```
 ./TablutGo ${BLACK, WHITE}$ $SERVER_IP$
 ```
+3. You are good to go!
 
 **Note:** some warnings may appear due to the tensorflow library. These can be ignored, and should not affect gameplay.
 
