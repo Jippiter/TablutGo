@@ -11,7 +11,7 @@ pip3 install matplotlib          [matplotlib]
 ```
 2. Navigate to the main folder, and run via the following command:
 ```
-./TablutGo ${BLACK, WHITE}$ $SERVER_IP$
+./TablutGo ${BLACK, WHITE}$ $TIMEOUT$ $SERVER_IP$
 ```
 3. You are good to go!
 
