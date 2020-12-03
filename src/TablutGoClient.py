@@ -11,7 +11,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import glob
 
-agent_path = "BVJW/"
+agent_path = "Final/"
 
 class CommandLineException(Exception):
 	pass
@@ -41,11 +41,13 @@ def JSON_to_local_state(data):
 	return new_state, data['turn']
 
 # Parse command-line arguments
-if len(sys.argv) != 3:
+if len(sys.argv) != 4:
 	raise CommandLineException("Wrong number of console arguments!")
 	exit()
 player_color = sys.argv[1]
-host = sys.argv[2]
+player_color = player_color.upper()
+host = sys.argv[3]
+timeout = sys.argv[2] #Unused, application answers in something like a second so no worries
 # Init local environment
 env = TablutEnvironment.Environment(reward_king_captured=0,
                                 reward_king_escape=0,
@@ -61,7 +63,7 @@ env = TablutEnvironment.Environment(reward_king_captured=0,
 # Init agent and set port based on command-line color
 port = 0
 agent = None
-if player_color.lower() == "white":
+if player_color == "WHITE":
 	port = 5800
 	agent = TablutAgent.DQNAgent(action_size=9*9*16,
                                      gamma=0,
@@ -81,7 +83,7 @@ if player_color.lower() == "white":
 	else:
 		raise Exception("Weights are None!")
 		exit()
-elif player_color.lower() == "black":
+elif player_color == "BLACK":
 	port = 5801
 	agent = TablutAgent.DQNAgent(action_size=9*9*16,
                                  gamma=0,

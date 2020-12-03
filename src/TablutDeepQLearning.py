@@ -116,7 +116,7 @@ show_learning_graph = True
 
 show_board = False #set True to watch the games on a board (this operation does not affect performances)
 
-cnn_weights_path = "Jip new architecture/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
+cnn_weights_path = "Final/" #Change folder name to start another training from zero; use this to make different tests with different hyperparameters
 
 save_weights_step = 250 #Save the CNNs' weights after each multiple of this number
 
